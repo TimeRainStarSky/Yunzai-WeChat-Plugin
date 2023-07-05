@@ -1,0 +1,8 @@
+{
+  "name": "WeChat-Plugin",
+  "type": "module",
+  "author": "TimeRainStarSky",
+  "dependencies": {
+    "wechat4u": "^0.7.12"
+  }
+}
