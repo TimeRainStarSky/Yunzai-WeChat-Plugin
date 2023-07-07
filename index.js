@@ -119,14 +119,14 @@ const adapter = new class WeChatAdapter {
   }
 
   getFriendInfo(id, user_id) {
-    const info = Bot[id].contacts[user_id]
-    if (!info) return false
+    const i = Bot[id].contacts[user_id]
+    if (!i) return false
 
     return {
-      ...info,
-      user_id: `wx_${info.UserName}`,
-      nickname: info.NickName,
-      avatar: `${Bot[id].CONF.origin}${info.HeadImgUrl}`,
+      ...i,
+      user_id: `wx_${i.UserName}`,
+      nickname: i.NickName,
+      avatar: `${Bot[id].CONF.origin}${i.HeadImgUrl}`,
     }
   }
 
@@ -139,27 +139,53 @@ const adapter = new class WeChatAdapter {
 
   getFriendList(id) {
     const array = []
-    for (const i of (this.getFriendArray(id)))
+    for (const i of this.getFriendArray(id))
       array.push(i.user_id)
     return array
   }
 
   getFriendMap(id) {
     const map = new Map()
-    for (const i of (this.getFriendArray(id)))
+    for (const i of this.getFriendArray(id))
+      map.set(i.user_id, i)
+    return map
+  }
+
+  getMemberArray(data) {
+    const array = []
+    for (const i of data.MemberList)
+      array.push({
+        ...data.bot.fl.get(`wx_${i.UserName}`),
+        ...i,
+        user_id: `wx_${i.UserName}`,
+        nickname: i.NickName,
+      })
+    return array
+  }
+
+  getMemberList(data) {
+    const array = []
+    for (const i of this.getMemberArray(data))
+      array.push(i.user_id)
+    return array
+  }
+
+  getMemberMap(data) {
+    const map = new Map()
+    for (const i of this.getMemberArray(data))
       map.set(i.user_id, i)
     return map
   }
 
   getGroupInfo(id, group_id) {
-    const info = Bot[id].contacts[group_id]
-    if (!info) return false
+    const i = Bot[id].contacts[group_id]
+    if (!i) return false
 
     return {
-      ...info,
-      group_id: `wx_${info.UserName}`,
-      group_name: info.NickName,
-      avatar: `${Bot[id].CONF.origin}${info.HeadImgUrl}`,
+      ...i,
+      group_id: `wx_${i.UserName}`,
+      group_name: i.NickName,
+      avatar: `${Bot[id].CONF.origin}${i.HeadImgUrl}`,
     }
   }
 
@@ -172,14 +198,14 @@ const adapter = new class WeChatAdapter {
 
   getGroupList(id) {
     const array = []
-    for (const i of (this.getGroupArray(id)))
+    for (const i of this.getGroupArray(id))
       array.push(i.group_id)
     return array
   }
 
   getGroupMap(id) {
     const map = new Map()
-    for (const i of (this.getGroupArray(id)))
+    for (const i of this.getGroupArray(id))
       map.set(i.group_id, i)
     return map
   }
@@ -197,6 +223,7 @@ const adapter = new class WeChatAdapter {
       recallMsg: message_id => this.recallMsg(i, i.user_id, message_id),
       makeForwardMsg: Bot.makeForwardMsg,
       sendForwardMsg: msg => Bot.sendForwardMsg(msg => this.sendMsg(i, i.user_id, msg), msg),
+      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
@@ -212,6 +239,7 @@ const adapter = new class WeChatAdapter {
     return {
       ...this.pickFriend(id, user_id),
       ...i,
+      getInfo: () => this.pickGroup(id, group_id).getMemberMap().get(user_id),
     }
   }
 
@@ -228,7 +256,11 @@ const adapter = new class WeChatAdapter {
       recallMsg: message_id => this.recallMsg(i, i.group_id, message_id),
       makeForwardMsg: Bot.makeForwardMsg,
       sendForwardMsg: msg => Bot.sendForwardMsg(msg => this.sendMsg(i, i.group_id, msg), msg),
+      getMemberArray: () => this.getMemberArray(i),
+      getMemberList: () => this.getMemberList(i),
+      getMemberMap: () => this.getMemberMap(i),
       pickMember: user_id => this.pickMember(id, group_id, user_id),
+      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
