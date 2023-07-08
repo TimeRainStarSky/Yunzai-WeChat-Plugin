@@ -139,8 +139,8 @@ const adapter = new class WeChatAdapter {
 
   getFriendList(id) {
     const array = []
-    for (const i of this.getFriendArray(id))
-      array.push(i.user_id)
+    for (const { user_id } of this.getFriendArray(id))
+      array.push(user_id)
     return array
   }
 
@@ -165,8 +165,8 @@ const adapter = new class WeChatAdapter {
 
   getMemberList(data) {
     const array = []
-    for (const i of this.getMemberArray(data))
-      array.push(i.user_id)
+    for (const { user_id } of this.getMemberArray(data))
+      array.push(user_id)
     return array
   }
 
@@ -198,8 +198,8 @@ const adapter = new class WeChatAdapter {
 
   getGroupList(id) {
     const array = []
-    for (const i of this.getGroupArray(id))
-      array.push(i.group_id)
+    for (const { group_id } of this.getGroupArray(id))
+      array.push(group_id)
     return array
   }
 
@@ -267,7 +267,25 @@ const adapter = new class WeChatAdapter {
 
   makeMessage(data) {
     data.post_type = "message"
-    if (data.FromUserName.startsWith("@@")) {
+    if (data.isSendBySelf) {
+      if (data.FromUserName == data.ToUserName) {
+        data.message_type = "private"
+      } else {
+        data.message_type = "group"
+        data.group_id = `wx_${data.ToUserName}`
+      }
+
+      data.user_id = `wx_${data.FromUserName}`
+      data.sender = {
+        ...data.bot.info,
+        user_id: data.bot.uin,
+        nickname: data.bot.nickname,
+        avatar: data.bot.avatar,
+      }
+
+      data.content = data.Content
+      data.raw_content = data.OriginalContent
+    } else if (data.FromUserName.startsWith("@@")) {
       data.message_type = "group"
       data.group_id = `wx_${data.FromUserName}`
 
