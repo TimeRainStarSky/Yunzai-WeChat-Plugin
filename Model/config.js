@@ -2,9 +2,12 @@ import fs from "fs"
 import YAML from "yaml"
 import _ from "lodash"
 
-const path = `${process.cwd()}/plugins/WeChat-Plugin/`
-const configFile = `${path}config.yaml`
+const configFile = "config/WeChat.yaml"
 const configSave = config => fs.writeFileSync(configFile, YAML.stringify({ ...config, package: undefined }), "utf-8")
+
+const configFileOld = "plugins/WeChat-Plugin/config.yaml"
+if (fs.existsSync(configFileOld))
+  fs.renameSync(configFileOld, configFile)
 
 const config = {
   tips: "",
@@ -30,6 +33,6 @@ config.tips = [
 if (YAML.stringify(config) != YAML.stringify(configData))
   configSave(config)
 
-config.package = JSON.parse(fs.readFileSync(`${path}package.json`, "utf-8"))
+config.package = JSON.parse(fs.readFileSync("plugins/WeChat-Plugin/package.json", "utf-8"))
 
 export { config, configSave }
