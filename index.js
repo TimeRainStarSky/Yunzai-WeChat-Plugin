@@ -1,4 +1,4 @@
-logger.info(logger.yellow("- 正在加载 微信 插件"))
+logger.info(logger.yellow("- 正在加载 微信 适配器插件"))
 
 import { config, configSave } from "./Model/config.js"
 import fetch from "node-fetch"
@@ -522,8 +522,8 @@ Bot.adapter.push(adapter)
 export class WeChat extends plugin {
   constructor() {
     super({
-      name: "微信账号设置",
-      dsc: "微信账号设置",
+      name: "WeChatAdapter",
+      dsc: "微信 适配器设置",
       event: "message",
       rule: [
         {
@@ -571,4 +571,4 @@ export class WeChat extends plugin {
   }
 }
 
-logger.info(logger.green("- 微信 插件 加载完成"))
+logger.info(logger.green("- 微信 适配器插件 加载完成"))
