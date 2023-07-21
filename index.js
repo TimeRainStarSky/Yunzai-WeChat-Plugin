@@ -14,6 +14,7 @@ const adapter = new class WeChatAdapter {
     this.path = "data/WeChat/"
     if (!fs.existsSync(this.path))
       fs.mkdirSync(this.path)
+    this.error = {}
   }
 
   makeParams(data) {
@@ -399,9 +400,18 @@ const adapter = new class WeChatAdapter {
     Bot.emit(`${data.post_type}`, data)
   }
 
+  async errorLog(error) {
+    const name = `${error.name}-${error.message}-${error.code}-${error.tips}`
+    const time = Date.now()
+    if (this.error[name]?.time && time - this.error[name].time < 5000)
+      return false
+    this.error[name] = { time, error }
+    logger.error(error)
+  }
+
   async qrLogin(send) {
     const bot = new Wechat()
-    bot.on("error", logger.error)
+    bot.on("error", error => this.errorLog(error))
     bot.on("uuid", uuid => {
       const url = `https://login.weixin.qq.com/qrcode/${uuid}`
       logger.mark(`微信扫码登录：${logger.green(url)}`)
@@ -420,7 +430,7 @@ const adapter = new class WeChatAdapter {
       return false
 
     const bot = new Wechat(JSON.parse(fs.readFileSync(`${this.path}${id}.json`)))
-    bot.on("error", logger.error)
+    bot.on("error", error => this.errorLog(error))
 
     return new Promise(resolve => {
       bot.once("login", () => resolve(bot))
@@ -446,6 +456,7 @@ const adapter = new class WeChatAdapter {
     fs.writeFileSync(`${this.path}${id}.json`, JSON.stringify(bot.botData))
 
     Bot[id] = bot
+    Bot[id].adapter = this
     Bot[id].info = Bot[id].user
     Bot[id].uin = id
     Bot[id].nickname = Bot[id].info.NickName
@@ -491,7 +502,7 @@ const adapter = new class WeChatAdapter {
       data.self_id = id
       data.bot = Bot[id]
       this.makeMessage(data)
-    }), 10000)
+    }), 15000)
 
     logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) 已连接`)
     Bot.emit(`connect.${id}`, Bot[id])
