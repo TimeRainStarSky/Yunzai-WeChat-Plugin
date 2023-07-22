@@ -16,14 +16,9 @@ TRSS-Yunzai 微信 Bot 适配器 插件
 ## 安装教程
 
 1. 准备：[TRSS-Yunzai](../../../Yunzai)
-
-2. 自动安装：`#安装WeChat-Plugin`
-- 手动安装：[GitHub](https://github.com/TimeRainStarSky/Yunzai-WeChat-Plugin) 或 [Gitee](https://gitee.com/TimeRainStarSky/Yunzai-WeChat-Plugin)
-
-```
-git clone --depth 1 https://gitee.com/TimeRainStarSky/Yunzai-WeChat-Plugin plugins/WeChat-Plugin
-pnpm i
-```
+2. 输入：`#安装WeChat-Plugin`
+3. 打开：微信 → 我 → 服务 → 钱包 → 身份信息 → 实名认证
+4. 输入：`#微信登录`
 
 ## 使用教程
 
