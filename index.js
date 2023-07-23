@@ -482,8 +482,8 @@ const adapter = new class WeChatAdapter {
     Bot[id].getGroupList = () => this.getGroupList(id)
     Bot[id].getGroupMap = () => this.getGroupMap(id)
 
-    Bot[id].fl = Bot[id].getFriendMap()
-    Bot[id].gl = Bot[id].getGroupMap()
+    Object.defineProperty(Bot[id], "fl", { get() { return this.getFriendMap() }})
+    Object.defineProperty(Bot[id], "gl", { get() { return this.getGroupMap() }})
 
     if (!config.id.includes(id)) {
       config.id.push(id)
@@ -492,11 +492,6 @@ const adapter = new class WeChatAdapter {
 
     if (!Bot.uin.includes(id))
       Bot.uin.push(id)
-
-    Bot[id].on("contacts-updated", () => {
-      Bot[id].fl = Bot[id].getFriendMap()
-      Bot[id].gl = Bot[id].getGroupMap()
-    })
 
     setTimeout(() => Bot[id].on("message", data => {
       data.self_id = id
