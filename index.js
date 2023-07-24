@@ -59,31 +59,28 @@ const adapter = new class WeChatAdapter {
     let at
     for (let i of msg) {
       if (typeof i != "object")
-        i = { type: "text", data: { text: i }}
-      else if (!i.data)
-        i = { type: i.type, data: { ...i, type: undefined }}
+        i = { type: "text", text: i }
 
       let file
-      if (i.data.file)
-        file = await this.fileType(i.data.file)
+      if (i.file) {
+        file = await this.fileType(i.file)
+        ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
+      }
 
       let ret
       switch (i.type) {
         case "text":
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送文本：[${id}] ${i.data.text}`)
-          ret = await data.bot.sendMsg(i.data.text, id)
+          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送文本：[${id}] ${i.text}`)
+          ret = await data.bot.sendMsg(i.text, id)
           break
         case "image":
           logger.info(`${logger.blue(`[${data.self_id}]`)} 发送图片：[${id}] ${file.name}(${file.url})`)
-          ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
           break
         case "record":
           logger.info(`${logger.blue(`[${data.self_id}]`)} 发送音频：[${id}] ${file.name}(${file.url})`)
-          ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
           break
         case "video":
           logger.info(`${logger.blue(`[${data.self_id}]`)} 发送视频：[${id}] ${file.name}(${file.url})`)
-          ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
           break
         case "reply":
           break
