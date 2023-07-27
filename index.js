@@ -4,6 +4,7 @@ import { config, configSave } from "./Model/config.js"
 import fetch from "node-fetch"
 import fs from "node:fs"
 import path from "node:path"
+import common from "../../lib/common/common.js"
 import { fileTypeFromBuffer } from "file-type"
 import Wechat from "wechat4u"
 
@@ -12,8 +13,7 @@ const adapter = new class WeChatAdapter {
     this.id = "WeChat"
     this.name = "微信Bot"
     this.path = "data/WeChat/"
-    if (!fs.existsSync(this.path))
-      fs.mkdirSync(this.path)
+    common.mkdirs(this.path)
     this.error = {}
   }
 
@@ -61,13 +61,13 @@ const adapter = new class WeChatAdapter {
       if (typeof i != "object")
         i = { type: "text", text: i }
 
+      let ret
       let file
       if (i.file) {
         file = await this.fileType(i.file)
         ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
       }
 
-      let ret
       switch (i.type) {
         case "text":
           logger.info(`${logger.blue(`[${data.self_id}]`)} 发送文本：[${id}] ${i.text}`)
