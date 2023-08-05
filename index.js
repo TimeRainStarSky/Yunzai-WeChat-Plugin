@@ -12,6 +12,7 @@ const adapter = new class WeChatAdapter {
   constructor() {
     this.id = "WeChat"
     this.name = "微信Bot"
+    this.version = `wechat4u-${config.package.dependencies.wechat4u.replace("^", "v")}`
     this.path = "data/WeChat/"
     common.mkdirs(this.path)
     this.error = {}
@@ -445,7 +446,7 @@ const adapter = new class WeChatAdapter {
     }
 
     if (!bot?.user?.Uin) {
-      logger.error(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) 连接失败`)
+      logger.error(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 连接失败`)
       return false
     }
 
@@ -461,7 +462,7 @@ const adapter = new class WeChatAdapter {
     Bot[id].version = {
       id: this.id,
       name: this.name,
-      version: config.package.dependencies.wechat4u,
+      version: this.version,
     }
     Bot[id].stat = { start_time: Date.now()/1000 }
 
@@ -496,7 +497,7 @@ const adapter = new class WeChatAdapter {
       this.makeMessage(data)
     }), 15000)
 
-    logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) 已连接`)
+    logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 已连接`)
     Bot.emit(`connect.${id}`, Bot[id])
     Bot.emit("connect", Bot[id])
     return id
