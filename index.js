@@ -100,7 +100,7 @@ const adapter = new class WeChatAdapter {
       }
       if (ret) {
         msgs.push(ret)
-        if (ret?.MsgID)
+        if (ret.MsgID)
           message_id.push(ret.MsgID)
       }
     }
@@ -108,7 +108,7 @@ const adapter = new class WeChatAdapter {
   }
 
   async recallMsg(data, id, message_id) {
-    logger.info(`${logger.blue(`[${data.self_id}]`)} 撤回消息：${JSON.stringify(message_id)}`)
+    logger.info(`${logger.blue(`[${data.self_id}]`)} 撤回消息：[${id}] ${message_id}`)
     if (!Array.isArray(message_id))
       message_id = [message_id]
     const msgs = []
@@ -220,9 +220,6 @@ const adapter = new class WeChatAdapter {
       ...i,
       sendMsg: msg => this.sendMsg(i, i.user_id, msg),
       recallMsg: message_id => this.recallMsg(i, i.user_id, message_id),
-      makeForwardMsg: Bot.makeForwardMsg,
-      sendForwardMsg: msg => Bot.sendForwardMsg(msg => this.sendMsg(i, i.user_id, msg), msg),
-      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
@@ -253,13 +250,10 @@ const adapter = new class WeChatAdapter {
       ...i,
       sendMsg: msg => this.sendMsg(i, i.group_id, msg),
       recallMsg: message_id => this.recallMsg(i, i.group_id, message_id),
-      makeForwardMsg: Bot.makeForwardMsg,
-      sendForwardMsg: msg => Bot.sendForwardMsg(msg => this.sendMsg(i, i.group_id, msg), msg),
       getMemberArray: () => this.getMemberArray(i),
       getMemberList: () => this.getMemberList(i),
       getMemberMap: () => this.getMemberMap(i),
       pickMember: user_id => this.pickMember(id, group_id, user_id),
-      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
@@ -388,11 +382,9 @@ const adapter = new class WeChatAdapter {
       data.group = data.bot.pickGroup(data.group_id)
       data.group_name = data.group.group_name
       logger.info(`${logger.blue(`[${data.self_id}]`)} 群消息：[${data.group_name}(${data.group_id}), ${data.sender.nickname}(${data.user_id})] ${data.raw_message}`)
-      data.member = data.group.pickMember(data.user_id)
     } else {
       logger.info(`${logger.blue(`[${data.self_id}]`)} 好友消息：[${data.sender.nickname}(${data.user_id})] ${data.raw_message}`)
     }
-    data.friend = data.bot.pickFriend(data.user_id)
 
     Bot.emit(`${data.post_type}.${data.message_type}`, data)
     Bot.emit(`${data.post_type}`, data)
@@ -408,7 +400,7 @@ const adapter = new class WeChatAdapter {
   }
 
   async qrLogin(send) {
-    const bot = new Wechat()
+    const bot = new Wechat
     bot.on("error", error => this.errorLog(error))
     bot.on("uuid", uuid => {
       const url = `https://login.weixin.qq.com/qrcode/${uuid}`
