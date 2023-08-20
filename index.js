@@ -144,7 +144,7 @@ const adapter = new class WeChatAdapter {
   }
 
   getFriendMap(id) {
-    const map = new Map()
+    const map = new Map
     for (const i of this.getFriendArray(id))
       map.set(i.user_id, i)
     return map
@@ -170,7 +170,7 @@ const adapter = new class WeChatAdapter {
   }
 
   getMemberMap(data) {
-    const map = new Map()
+    const map = new Map
     for (const i of this.getMemberArray(data))
       map.set(i.user_id, i)
     return map
@@ -203,9 +203,16 @@ const adapter = new class WeChatAdapter {
   }
 
   getGroupMap(id) {
-    const map = new Map()
+    const map = new Map
     for (const i of this.getGroupArray(id))
       map.set(i.group_id, i)
+    return map
+  }
+
+  getGroupMemberMap(id) {
+    const map = new Map
+    for (const i of this.getGroupList(id))
+      map.set(i, new Map)
     return map
   }
 
@@ -259,6 +266,7 @@ const adapter = new class WeChatAdapter {
   }
 
   makeMessage(data) {
+    data.bot = Bot[data.self_id]
     data.post_type = "message"
     if (data.isSendBySelf) {
       if (data.FromUserName == data.ToUserName) {
@@ -386,8 +394,7 @@ const adapter = new class WeChatAdapter {
       logger.info(`${logger.blue(`[${data.self_id}]`)} 好友消息：[${data.sender.nickname}(${data.user_id})] ${data.raw_message}`)
     }
 
-    Bot.emit(`${data.post_type}.${data.message_type}`, data)
-    Bot.emit(`${data.post_type}`, data)
+    Bot.em(`${data.post_type}.${data.message_type}`, data)
   }
 
   async errorLog(error) {
@@ -471,34 +478,30 @@ const adapter = new class WeChatAdapter {
     Bot[id].getGroupArray = () => this.getGroupArray(id)
     Bot[id].getGroupList = () => this.getGroupList(id)
     Bot[id].getGroupMap = () => this.getGroupMap(id)
+    Bot[id].getGroupMemberMap = () => this.getGroupMemberMap(id)
 
     Object.defineProperty(Bot[id], "fl", { get() { return this.getFriendMap() }})
     Object.defineProperty(Bot[id], "gl", { get() { return this.getGroupMap() }})
+    Object.defineProperty(Bot[id], "gml", { get() { return this.getGroupMemberMap() }})
 
     if (!config.id.includes(id)) {
       config.id.push(id)
       configSave(config)
     }
 
-    if (!Bot.uin.includes(id))
-      Bot.uin.push(id)
-
     setTimeout(() => Bot[id].on("message", data => {
       data.self_id = id
-      data.bot = Bot[id]
       this.makeMessage(data)
     }), 15000)
 
     logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 已连接`)
-    Bot.emit(`connect.${id}`, Bot[id])
-    Bot.emit("connect", Bot[id])
+    Bot.em(`connect.${id}`, { self_id: id })
     return id
   }
 
   async load() {
     for (const id of config.id)
       await adapter.connect(id)
-    return true
   }
 }
 
