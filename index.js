@@ -12,7 +12,7 @@ const adapter = new class WeChatAdapter {
   constructor() {
     this.id = "WeChat"
     this.name = "微信Bot"
-    this.version = `wechat4u-${config.package.dependencies.wechat4u.replace("^", "v")}`
+    this.version = `wechat4u ${config.package.dependencies.wechat4u.replace("^", "v")}`
     this.path = "data/WeChat/"
     common.mkdirs(this.path)
     this.error = {}
@@ -501,7 +501,10 @@ const adapter = new class WeChatAdapter {
 
   async load() {
     for (const id of config.id)
-      await adapter.connect(id)
+      await new Promise(resolve => {
+        adapter.connect(id).then(resolve)
+        setTimeout(resolve, 5000)
+      })
   }
 }
 
