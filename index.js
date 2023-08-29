@@ -536,28 +536,28 @@ export class WeChat extends plugin {
     })
   }
 
-  async List() {
-    await this.reply(`共${config.id.length}个账号：\n${config.id.join("\n")}`, true)
+  List() {
+    this.reply(`共${config.id.length}个账号：\n${config.id.join("\n")}`, true)
   }
 
   async Login() {
     if (await adapter.connect(msg => this.reply(msg, true))) {
-      await this.reply(`账号已连接，共${config.id.length}个账号`, true)
+      this.reply(`账号已连接，共${config.id.length}个账号`, true)
     } else {
-      await this.reply(`账号连接失败`, true)
+      this.reply(`账号连接失败`, true)
       return false
     }
   }
 
-  async Remove() {
+  Remove() {
     const id = this.e.msg.replace(/^#(微信|WeChat)删除/, "").trim()
     if (!config.id.includes(id)) {
-      await this.reply(`账号不存在：${id}`, true)
+      this.reply(`账号不存在：${id}`, true)
       return false
     }
 
     config.id = config.id.filter(item => item != id)
-    await this.reply(`账号已删除，重启后生效，共${config.id.length}个账号`, true)
+    this.reply(`账号已删除，重启后生效，共${config.id.length}个账号`, true)
     configSave(config)
   }
 }
