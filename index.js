@@ -266,6 +266,8 @@ const adapter = new class WeChatAdapter {
   }
 
   makeMessage(data) {
+    if (data.CreateTime + config.expireTime < Date.now()/1000) return
+
     data.bot = Bot[data.self_id]
     data.post_type = "message"
     if (data.isSendBySelf) {
@@ -489,10 +491,10 @@ const adapter = new class WeChatAdapter {
       configSave(config)
     }
 
-    setTimeout(() => Bot[id].on("message", data => {
+    Bot[id].on("message", data => {
       data.self_id = id
       this.makeMessage(data)
-    }), 15000)
+    })
 
     logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 已连接`)
     Bot.em(`connect.${id}`, { self_id: id })
