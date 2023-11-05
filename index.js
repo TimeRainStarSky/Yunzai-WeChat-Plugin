@@ -227,6 +227,7 @@ const adapter = new class WeChatAdapter {
       ...i,
       sendMsg: msg => this.sendMsg(i, i.user_id, msg),
       recallMsg: message_id => this.recallMsg(i, i.user_id, message_id),
+      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
@@ -261,6 +262,7 @@ const adapter = new class WeChatAdapter {
       getMemberList: () => this.getMemberList(i),
       getMemberMap: () => this.getMemberMap(i),
       pickMember: user_id => this.pickMember(id, group_id, user_id),
+      getInfo: () => i,
       getAvatarUrl: () => i.avatar,
     }
   }
