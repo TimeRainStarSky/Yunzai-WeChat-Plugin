@@ -25,19 +25,16 @@ const adapter = new class WeChatAdapter {
     return `?${params.join("&")}`
   }
 
-  async makeBuffer(file) {
-    if (file.match(/^base64:\/\//))
-      return Buffer.from(file.replace(/^base64:\/\//, ""), "base64")
-    else if (file.match(/^https?:\/\//))
-      return Buffer.from(await (await fetch(file)).arrayBuffer())
-    return file
-  }
-
-  async fileType(data) {
+  async fileType(data, name) {
     const file = {}
     try {
-      file.url = data.replace(/^base64:\/\/.*/, "base64://...")
-      file.buffer = await this.makeBuffer(data)
+      if (Buffer.isBuffer(data)) {
+        file.url = name || "Buffer"
+        file.buffer = data
+      } else {
+        file.url = data.replace(/^base64:\/\/.*/, "base64://...")
+        file.buffer = await Bot.Buffer(data)
+      }
       if (Buffer.isBuffer(file.buffer)) {
         file.type = await fileTypeFromBuffer(file.buffer)
         file.name = `${Date.now()}.${file.type.ext}`
@@ -47,7 +44,6 @@ const adapter = new class WeChatAdapter {
     } catch (err) {
       logger.error(`文件类型检测错误：${logger.red(err)}`)
     }
-
     return file
   }
 
@@ -71,17 +67,17 @@ const adapter = new class WeChatAdapter {
 
       switch (i.type) {
         case "text":
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送文本：[${id}] ${i.text}`)
+          Bot.makeLog("info", `发送文本：[${id}] ${i.text}`, data.self_id)
           ret = await data.bot.sendMsg(i.text, id)
           break
         case "image":
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送图片：[${id}] ${file.name}(${file.url})`)
+          Bot.makeLog("info", `发送图片：[${id}] ${file.name}(${file.url})`, data.self_id)
           break
         case "record":
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送音频：[${id}] ${file.name}(${file.url})`)
+          Bot.makeLog("info", `发送音频：[${id}] ${file.name}(${file.url})`, data.self_id)
           break
         case "video":
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送视频：[${id}] ${file.name}(${file.url})`)
+          Bot.makeLog("info", `发送视频：[${id}] ${file.name}(${file.url})`, data.self_id)
           break
         case "reply":
           break
@@ -95,7 +91,7 @@ const adapter = new class WeChatAdapter {
           break
         default:
           i = JSON.stringify(i)
-          logger.info(`${logger.blue(`[${data.self_id}]`)} 发送消息：[${id}] ${i}`)
+          Bot.makeLog("info", `发送消息：[${id}] ${i}`, data.self_id)
           ret = await data.bot.sendMsg(i, id)
       }
       if (ret) {
@@ -108,7 +104,7 @@ const adapter = new class WeChatAdapter {
   }
 
   async recallMsg(data, id, message_id) {
-    logger.info(`${logger.blue(`[${data.self_id}]`)} 撤回消息：[${id}] ${message_id}`)
+    Bot.makeLog("info", `撤回消息：[${id}] ${message_id}`, data.self_id)
     if (!Array.isArray(message_id))
       message_id = [message_id]
     const msgs = []
@@ -393,9 +389,9 @@ const adapter = new class WeChatAdapter {
     if (data.group_id) {
       data.group = data.bot.pickGroup(data.group_id)
       data.group_name = data.group.group_name
-      logger.info(`${logger.blue(`[${data.self_id}]`)} 群消息：[${data.group_name}(${data.group_id}), ${data.sender.nickname}(${data.user_id})] ${data.raw_message}`)
+      Bot.makeLog("info", `群消息：[${data.group_name}(${data.group_id}), ${data.sender.nickname}(${data.user_id})] ${data.raw_message}`, data.self_id)
     } else {
-      logger.info(`${logger.blue(`[${data.self_id}]`)} 好友消息：[${data.sender.nickname}(${data.user_id})] ${data.raw_message}`)
+      Bot.makeLog("info", `好友消息：[${data.sender.nickname}(${data.user_id})] ${data.raw_message}`, data.self_id)
     }
 
     Bot.em(`${data.post_type}.${data.message_type}`, data)
