@@ -5,7 +5,6 @@ import fetch from "node-fetch"
 import fs from "node:fs"
 import path from "node:path"
 import common from "../../lib/common/common.js"
-import { fileTypeFromBuffer } from "file-type"
 import Wechat from "wechat4u"
 
 const adapter = new class WeChatAdapter {
@@ -25,28 +24,6 @@ const adapter = new class WeChatAdapter {
     return `?${params.join("&")}`
   }
 
-  async fileType(data, name) {
-    const file = {}
-    try {
-      if (Buffer.isBuffer(data)) {
-        file.url = name || "Buffer"
-        file.buffer = data
-      } else {
-        file.url = data.replace(/^base64:\/\/.*/, "base64://...")
-        file.buffer = await Bot.Buffer(data)
-      }
-      if (Buffer.isBuffer(file.buffer)) {
-        file.type = await fileTypeFromBuffer(file.buffer)
-        file.name = `${Date.now()}.${file.type.ext}`
-      } else {
-        file.name = path.basename(file.buffer)
-      }
-    } catch (err) {
-      logger.error(`文件类型检测错误：${logger.red(err)}`)
-    }
-    return file
-  }
-
   async sendMsg(data, id, msg) {
     if (!Array.isArray(msg))
       msg = [msg]
@@ -61,7 +38,7 @@ const adapter = new class WeChatAdapter {
       let ret
       let file
       if (i.file) {
-        file = await this.fileType(i.file)
+        file = await Bot.fileType(i.file)
         ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
       }
 
@@ -71,13 +48,13 @@ const adapter = new class WeChatAdapter {
           ret = await data.bot.sendMsg(i.text, id)
           break
         case "image":
-          Bot.makeLog("info", `发送图片：[${id}] ${file.name}(${file.url})`, data.self_id)
+          Bot.makeLog("info", `发送图片：[${id}] ${file.name}(${file.url} ${(file.buffer.length/1024).toFixed(2)}KB)`, data.self_id)
           break
         case "record":
-          Bot.makeLog("info", `发送音频：[${id}] ${file.name}(${file.url})`, data.self_id)
+          Bot.makeLog("info", `发送音频：[${id}] ${file.name}(${file.url} ${(file.buffer.length/1024).toFixed(2)}KB)`, data.self_id)
           break
         case "video":
-          Bot.makeLog("info", `发送视频：[${id}] ${file.name}(${file.url})`, data.self_id)
+          Bot.makeLog("info", `发送视频：[${id}] ${file.name}(${file.url} ${(file.buffer.length/1024).toFixed(2)}KB)`, data.self_id)
           break
         case "reply":
           break

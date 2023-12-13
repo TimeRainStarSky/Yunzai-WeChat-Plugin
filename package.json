@@ -3,6 +3,6 @@
   "type": "module",
   "author": "TimeRainStarSky",
   "dependencies": {
-    "wechat4u": "^0.7.12"
+    "wechat4u": "^0.7.14"
   }
 }
