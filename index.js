@@ -57,8 +57,8 @@ const adapter = new class WeChatAdapter {
           Bot.makeLog("info", `发送视频：[${id}] ${file.name}(${file.url} ${(file.buffer.length/1024).toFixed(2)}KB)`, data.self_id)
           break
         case "reply":
-          break
         case "at":
+        case "button":
           break
         case "node":
           for (const ret of (await Bot.sendForwardMsg(msg => this.sendMsg(data, id, msg), i.data))) {
