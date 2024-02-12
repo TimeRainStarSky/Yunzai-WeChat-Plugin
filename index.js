@@ -1,19 +1,29 @@
 logger.info(logger.yellow("- 正在加载 微信 适配器插件"))
 
-import { config, configSave } from "./Model/config.js"
+import makeConfig from "../../lib/plugins/config.js"
 import fetch from "node-fetch"
 import fs from "node:fs"
 import path from "node:path"
-import common from "../../lib/common/common.js"
 import Wechat from "wechat4u"
+
+const { config, configSave } = await makeConfig("WeChat", {
+  tips: "",
+  permission: "master",
+  expireTime: 10,
+  id: [],
+}, {
+  tips: [
+    "欢迎使用 TRSS-Yunzai WeChat Plugin ! 作者：时雨🌌星空",
+    "参考：https://github.com/TimeRainStarSky/Yunzai-WeChat-Plugin",
+  ],
+})
 
 const adapter = new class WeChatAdapter {
   constructor() {
     this.id = "WeChat"
     this.name = "微信Bot"
-    this.version = `wechat4u ${config.package.dependencies.wechat4u.replace("^", "v")}`
+    this.version = `wechat4u v0.7.14`
     this.path = "data/WeChat/"
-    common.mkdirs(this.path)
     this.error = {}
   }
 
@@ -463,7 +473,7 @@ const adapter = new class WeChatAdapter {
 
     if (!config.id.includes(id)) {
       config.id.push(id)
-      configSave(config)
+      await configSave()
     }
 
     Bot[id].on("message", data => {
@@ -477,6 +487,7 @@ const adapter = new class WeChatAdapter {
   }
 
   async load() {
+    await Bot.mkdir(this.path)
     for (const id of config.id)
       await new Promise(resolve => {
         adapter.connect(id).then(resolve)
@@ -526,7 +537,7 @@ export class WeChat extends plugin {
     }
   }
 
-  Remove() {
+  async Remove() {
     const id = this.e.msg.replace(/^#(微信|WeChat)删除/, "").trim()
     if (!config.id.includes(id)) {
       this.reply(`账号不存在：${id}`, true)
@@ -535,7 +546,7 @@ export class WeChat extends plugin {
 
     config.id = config.id.filter(item => item != id)
     this.reply(`账号已删除，重启后生效，共${config.id.length}个账号`, true)
-    configSave(config)
+    await configSave()
   }
 }
 
