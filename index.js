@@ -48,7 +48,7 @@ const adapter = new class WeChatAdapter {
       let ret
       let file
       if (i.file) {
-        file = await Bot.fileType(i.file)
+        file = await Bot.fileType(i)
         ret = await data.bot.sendMsg({ file: file.buffer, filename: file.name }, id)
       }
 
