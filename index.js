@@ -19,13 +19,11 @@ const { config, configSave } = await makeConfig("WeChat", {
 })
 
 const adapter = new class WeChatAdapter {
-  constructor() {
-    this.id = "WeChat"
-    this.name = "微信Bot"
-    this.version = `wechat4u v0.7.14`
-    this.path = "data/WeChat/"
-    this.error = {}
-  }
+  id = "WeChat"
+  name = "微信Bot"
+  version = `wechat4u v0.7.14`
+  path = "data/WeChat/"
+  error = {}
 
   makeParams(data) {
     const params = []
@@ -384,18 +382,18 @@ const adapter = new class WeChatAdapter {
     Bot.em(`${data.post_type}.${data.message_type}`, data)
   }
 
-  async errorLog(error) {
+  async errorLog(bot, error) {
     const name = `${error.name}-${error.message}-${error.code}-${error.tips}`
     const time = Date.now()
-    if (this.error[name]?.time && time - this.error[name].time < 5000)
+    if (this.error[name]?.time && time - this.error[name].time < 15000)
       return false
     this.error[name] = { time, error }
-    logger.error(error)
+    Bot.makeLog("error", error, bot.user?.Uin)
   }
 
   async qrLogin(send) {
     const bot = new Wechat
-    bot.on("error", error => this.errorLog(error))
+    bot.on("error", error => this.errorLog(bot, error))
     bot.on("uuid", uuid => {
       const url = `https://login.weixin.qq.com/qrcode/${uuid}`
       logger.mark(`微信扫码登录：${logger.green(url)}`)
@@ -414,7 +412,7 @@ const adapter = new class WeChatAdapter {
       return false
 
     const bot = new Wechat(JSON.parse(fs.readFileSync(`${this.path}${id}.json`)))
-    bot.on("error", error => this.errorLog(error))
+    bot.on("error", error => this.errorLog(bot, error))
 
     return new Promise(resolve => {
       bot.once("login", () => resolve(bot))
@@ -432,7 +430,7 @@ const adapter = new class WeChatAdapter {
     }
 
     if (!bot?.user?.Uin) {
-      logger.error(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 连接失败`)
+      Bot.makeLog("error", `${this.name}(${this.id}) ${this.version} 连接失败`, id)
       return false
     }
 
@@ -481,7 +479,7 @@ const adapter = new class WeChatAdapter {
       this.makeMessage(data)
     })
 
-    logger.mark(`${logger.blue(`[${id}]`)} ${this.name}(${this.id}) ${this.version} 已连接`)
+    Bot.makeLog("mark", `${this.name}(${this.id}) ${this.version} 已连接`, id)
     Bot.em(`connect.${id}`, { self_id: id })
     return id
   }
@@ -489,10 +487,7 @@ const adapter = new class WeChatAdapter {
   async load() {
     await Bot.mkdir(this.path)
     for (const id of config.id)
-      await new Promise(resolve => {
-        adapter.connect(id).then(resolve)
-        setTimeout(resolve, 5000)
-      })
+      await Bot.sleep(5000, this.connect(id))
   }
 }
 
