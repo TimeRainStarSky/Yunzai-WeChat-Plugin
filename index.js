@@ -40,7 +40,7 @@ const adapter = new class WeChatAdapter {
     let quote
     let at
     for (let i of msg) {
-      if (typeof i != "object")
+      if (typeof i !== "object")
         i = { type: "text", text: i }
 
       let ret
@@ -198,6 +198,8 @@ const adapter = new class WeChatAdapter {
   }
 
   pickFriend(id, user_id) {
+    if (typeof user_id !== "string")
+      user_id = String(user_id)
     const i = {
       ...Bot[id].fl.get(user_id),
       self_id: id,
@@ -214,6 +216,10 @@ const adapter = new class WeChatAdapter {
   }
 
   pickMember(id, group_id, user_id) {
+    if (typeof group_id !== "string")
+      group_id = String(group_id)
+    if (typeof user_id !== "string")
+      user_id = String(user_id)
     const i = {
       ...Bot[id].fl.get(user_id),
       self_id: id,
@@ -229,6 +235,8 @@ const adapter = new class WeChatAdapter {
   }
 
   pickGroup(id, group_id) {
+    if (typeof group_id !== "string")
+      group_id = String(group_id)
     const i = {
       ...Bot[id].gl.get(group_id),
       self_id: id,
@@ -254,7 +262,7 @@ const adapter = new class WeChatAdapter {
     data.bot = Bot[data.self_id]
     data.post_type = "message"
     if (data.isSendBySelf) {
-      if (data.FromUserName == data.ToUserName) {
+      if (data.FromUserName === data.ToUserName) {
         data.message_type = "private"
       } else {
         data.message_type = "group"
@@ -423,7 +431,7 @@ const adapter = new class WeChatAdapter {
 
   async connect(id) {
     let bot
-    if (typeof id == "function") {
+    if (typeof id === "function") {
       bot = await this.qrLogin(id)
     } else {
       bot = await this.dataLogin(id)
@@ -539,7 +547,7 @@ export class WeChat extends plugin {
       return false
     }
 
-    config.id = config.id.filter(item => item != id)
+    config.id = config.id.filter(item => item !== id)
     this.reply(`账号已删除，重启后生效，共${config.id.length}个账号`, true)
     await configSave()
   }
